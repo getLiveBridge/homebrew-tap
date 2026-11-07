@@ -1,0 +1,44 @@
+# Moves the cask to LiveBridge's latest release, only once that release's image passes the check
+# in its README: built by its release workflow from that tag, on a GitHub-hosted runner.
+name: Bump the cask
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Bump to the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          repo=getLiveBridge/LiveBridge
+          tag=$(gh release view --repo "$repo" --json tagName --jq .tagName)
+          case "$tag" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "unexpected tag: $tag"; exit 1 ;;
+          esac
+          version=${tag#v}
+          if grep -qF "version \"$version\"" Casks/livebridge.rb; then
+            echo "already at $version"
+            exit 0
+          fi
+          dir=$(mktemp -d)
+          gh release download "$tag" --repo "$repo" --pattern LiveBridge.dmg --dir "$dir"
+          gh attestation verify "$dir/LiveBridge.dmg" --repo "$repo" \
+            --signer-workflow "$repo/.github/workflows/release.yml" \
+            --source-ref "refs/tags/$tag" --deny-self-hosted-runners
+          sum=$(sha256sum "$dir/LiveBridge.dmg" | cut -d' ' -f1)
+          sed -i -E "s/^(  version ).*/\1\"$version\"/; s/^(  sha256 ).*/\1\"$sum\"/" Casks/livebridge.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "livebridge $version"
+          git push
