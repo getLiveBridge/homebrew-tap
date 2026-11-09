@@ -1,6 +1,6 @@
 cask "livebridge" do
-  version "0.4.2"
-  sha256 "f92033ba8f03b0169c9d9b1f7cd71545f43f3fe56dc49ed4e8431ceb0de1b7d4"
+  version "0.5.0"
+  sha256 "fed6d04cb122add257b785b695bddfacf7c868046818a07e82a078d1a392d4a8"
 
   url "https://github.com/getLiveBridge/LiveBridge/releases/download/v#{version}/LiveBridge.dmg"
   name "LiveBridge"
