@@ -31,10 +31,7 @@ cask "livebridge" do
   ]
 
   caveats <<~EOS
-    LiveBridge is signed ad hoc and not notarized. On first launch, allow it under
-    System Settings > Privacy & Security > Open Anyway.
-
-    It also needs its Claude Code mod and the Codex CLI:
+    LiveBridge needs its Claude Code mod and the Codex CLI:
       https://github.com/getLiveBridge/LiveBridge#install
   EOS
 end
